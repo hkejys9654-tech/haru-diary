@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>은우·선우 하루 한 장</title>
+<meta name="theme-color" content="#F2EADC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="하루 한 장">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap">
+<style>
+/* Layout: one centered column like a photo album page — masthead, kid tabs, search, month calendar, month list; sheets slide up for writing/viewing/saving */
+:root{
+  --paper:#F2EADC;       /* kraft beige ground */
+  --card:#FBF7EF;        /* album sheet */
+  --ink:#3A2E24;         /* cocoa ink */
+  --ink-2:#7B6956;       /* faded ink */
+  --rule:#E0D2BC;        /* pencil rule */
+  --moss:#6B7A52;        /* action */
+  --eunwoo:#B9794A;      /* 은우 caramel */
+  --seonwoo:#5F7F94;     /* 선우 dusty blue */
+  --danger:#A4513F;
+  --f-display:"Gowun Batang","Nanum Myeongjo",serif;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-hand:"Nanum Pen Script","Gowun Dodum",cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--paper)}
+body{margin:0;color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background-image:radial-gradient(rgba(122,98,70,.05) 1px,transparent 1px);background-size:5px 5px}
+.wrap{max-width:760px;margin:0 auto;padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(56px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,.cell:focus-visible,.item:focus-visible{outline:2px solid var(--moss);outline-offset:2px}
+input,textarea{font:inherit;color:var(--ink)}
+svg{flex:none}
+
+/* masthead */
+.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1.5px solid var(--ink)}
+.mast h1{font-family:var(--f-display);font-weight:700;font-size:clamp(24px,5.4vw,32px);line-height:1.15;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.mast .tag{font-family:var(--f-hand);font-size:21px;color:var(--ink-2);line-height:1;margin-top:4px}
+.mast-actions{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:8px 14px;font-size:14px;white-space:nowrap}
+.btn.solid{background:var(--ink);color:var(--card)}
+.btn.moss{background:var(--moss);border-color:var(--moss);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{border-color:transparent;padding-inline:8px}
+
+/* kid tabs */
+.kids{display:flex;gap:10px;flex-wrap:wrap}
+.kid{display:flex;align-items:center;gap:10px;border:1.5px solid var(--rule);background:var(--card);border-radius:14px;padding:10px 14px;min-width:0;flex:1 1 150px;text-align:left}
+.kid .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-family:var(--f-display);font-weight:700;font-size:15px}
+.kid b{display:block;font-family:var(--f-display);font-size:17px;line-height:1.2}
+.kid small{color:var(--ink-2);font-size:13px}
+.kid[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.kid.all{flex:0 0 auto}
+
+/* search */
+.search{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.field{display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--rule);border-radius:12px;padding:0 12px;height:44px;min-width:0}
+.field input{border:0;background:transparent;outline:none;min-width:0;width:100%;height:100%}
+.field.date{flex:0 1 180px}
+.field.q{flex:1 1 200px}
+.search-note{font-size:13px;color:var(--ink-2)}
+
+/* month */
+.month{background:var(--card);border-radius:18px;padding:16px;border:1px solid var(--rule)}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.mhead h2{margin:0;font-family:var(--f-display);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.mhead .count{font-size:13px;color:var(--ink-2);font-family:var(--f-body);font-weight:400;margin-left:8px}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--rule);background:transparent;display:grid;place-items:center}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.wd{font-size:12px;color:var(--ink-2);text-align:center;padding-bottom:2px}
+.wd.sun{color:var(--danger)}
+.cell{position:relative;aspect-ratio:1;max-width:100%;border-radius:9px;border:1px solid transparent;background:transparent;padding:0;overflow:hidden;font-variant-numeric:tabular-nums}
+.cell.blank{visibility:hidden}
+.cell .n{position:absolute;top:4px;left:5px;font-size:12.5px;line-height:1;padding:2px 4px;border-radius:6px}
+.cell:hover{border-color:var(--rule)}
+.cell.has{border-color:var(--rule)}
+.cell.has.photo .n{background:rgba(251,247,239,.92)}
+.cell img{width:100%;height:100%;object-fit:cover;display:block}
+.cell .note{position:absolute;inset:auto 4px 4px 4px;height:4px;border-radius:2px;background:var(--moss);opacity:.65}
+.cell .more{position:absolute;right:4px;bottom:4px;font-size:11px;background:var(--ink);color:var(--card);border-radius:8px;padding:0 5px;line-height:16px}
+.cell.today .n{background:var(--ink);color:var(--card)}
+.cell.sun .n{color:var(--danger)}
+.cell.today.sun .n{color:var(--card)}
+
+/* list */
+.sec-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.sec-title h3{margin:0;font-family:var(--f-display);font-size:18px}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;align-items:center;background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:10px;text-align:left;width:100%}
+.thumb{width:84px;height:84px;border-radius:10px;background:var(--paper);overflow:hidden;display:grid;place-items:center;color:var(--ink-2)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.item .d{font-family:var(--f-display);font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.item .d span{font-weight:400;color:var(--ink-2);font-size:13px;margin-left:6px;font-family:var(--f-body)}
+.item p{margin:2px 0 0;color:var(--ink);font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.tg{font-size:12px;border-radius:999px;padding:1px 8px;color:#fff;line-height:18px}
+.empty{background:var(--card);border:1.5px dashed var(--rule);border-radius:14px;padding:22px;text-align:center;color:var(--ink-2)}
+.empty .hand{font-family:var(--f-hand);font-size:24px;color:var(--ink);display:block;line-height:1.2;margin-bottom:4px}
+.foot{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;color:var(--ink-2);font-size:13px}
+.foot button{background:none;border:0;text-decoration:underline;text-underline-offset:3px;color:var(--ink-2)}
+
+/* sheets */
+.ov{position:fixed;inset:0;background:rgba(58,46,36,.38);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:600px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;
+  padding:18px max(18px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));
+  animation:up .22s ease-out;display:flex;flex-direction:column;gap:16px}
+@media (min-width:700px){.ov{align-items:center}.sheet{border-radius:20px;max-height:88%}}
+@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sh-head h3{margin:0;font-family:var(--f-display);font-size:20px}
+.lbl{font-size:13px;color:var(--ink-2);margin-bottom:6px;display:block}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pick{border:1.5px solid var(--rule);background:transparent;border-radius:999px;padding:7px 14px;display:inline-flex;align-items:center;gap:7px}
+.pick[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--card)}
+.pick .sw{width:10px;height:10px;border-radius:50%}
+.drop{border:1.5px dashed var(--ink-2);border-radius:14px;min-height:160px;display:grid;place-items:center;text-align:center;color:var(--ink-2);background:var(--paper);overflow:hidden;position:relative;width:100%;padding:0}
+.drop img{width:100%;max-height:340px;object-fit:contain;display:block;background:var(--paper)}
+.drop .hint{padding:24px}
+.drop .hint b{display:block;color:var(--ink);font-family:var(--f-display);font-size:16px}
+.ta{width:100%;min-height:130px;border:1.5px solid var(--rule);border-radius:12px;background:var(--card);padding:10px 12px;resize:vertical;line-height:30px;
+  background-image:repeating-linear-gradient(transparent 0 29px,var(--rule) 29px 30px);background-attachment:local}
+.counter{text-align:right;font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.inp{border:1.5px solid var(--rule);border-radius:10px;background:var(--card);height:42px;padding:0 10px;min-width:0}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.err{color:var(--danger);font-size:13px}
+
+/* printed-page preview */
+.page{background:#FFFDF8;border:1px solid var(--rule);border-radius:6px;box-shadow:0 1px 0 var(--rule),0 10px 24px -18px rgba(58,46,36,.6);padding:22px 20px 26px 30px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+.page .y{font-size:12px;letter-spacing:.18em;color:#9C8466}
+.page .dd{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1.2}
+.page .dd span{font-weight:400;font-size:15px;color:#9C8466;margin-left:8px}
+.page .k{font-size:13px;color:#6E5C49;padding:4px 0 10px;border-bottom:2px solid #9C8466;align-self:stretch}
+.page img{margin-top:14px;max-height:300px;max-width:100%;object-fit:contain}
+.page .tx{align-self:stretch;text-align:left;font-family:var(--f-display);font-size:15px;line-height:32px;margin-top:14px;white-space:pre-wrap;
+  background-image:repeating-linear-gradient(transparent 0 31px,#E9DCC6 31px 32px);min-height:96px}
+.confirm{background:#F6E6DF;border-radius:12px;padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:14px}
+.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+@media (max-width:420px){.seg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.seg .pick{justify-content:center}
+.summary{background:var(--paper);border-radius:12px;padding:12px 14px;font-size:14px}
+.summary b{font-family:var(--f-display);font-size:18px}
+.switch{display:flex;align-items:center;gap:10px;font-size:14px}
+.switch input{width:20px;height:20px;accent-color:var(--moss)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--card);padding:10px 16px;border-radius:999px;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
+.kidrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:8px;align-items:center}
+.notice{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <h1 id="appTitle">은우·선우 하루 한 장</h1>
+      <div class="tag">사진 한 장, 짧은 한 줄</div>
+    </div>
+    <div class="mast-actions">
+      <button class="btn" id="btnSave" type="button" aria-label="한글 파일로 저장">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>저장</button>
+      <button class="btn solid" id="btnNew" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>기록하기</button>
+    </div>
+  </header>
+
+  <div id="notice" class="notice" hidden></div>
+
+  <nav class="kids" id="kids" aria-label="아이 선택"></nav>
+
+  <section class="search" aria-label="기록 찾기">
+    <label class="field date"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <input id="qDate" type="date" aria-label="날짜로 찾기"></label>
+    <label class="field q"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="qText" type="search" placeholder="검색어 (예: 자전거, 생일)" aria-label="검색어"></label>
+    <button class="btn ghost" id="qClear" type="button" hidden>지우기</button>
+  </section>
+
+  <section id="searchResults" hidden>
+    <div class="sec-title"><h3 id="srTitle">찾은 기록</h3></div>
+    <div class="list" id="srList" style="margin-top:10px"></div>
+  </section>
+
+  <section class="month" id="monthBox">
+    <div class="mhead">
+      <button class="icon-btn" id="mPrev" type="button" aria-label="이전 달"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <h2 id="mTitle">&nbsp;</h2>
+      <button class="icon-btn" id="mNext" type="button" aria-label="다음 달"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="grid" id="cal"></div>
+  </section>
+
+  <section id="monthListBox">
+    <div class="sec-title"><h3 id="mlTitle">이번 달 기록</h3></div>
+    <div class="list" id="mList" style="margin-top:10px"></div>
+  </section>
+
+  <div class="foot"><button type="button" id="btnKids">아이 정보 설정</button></div>
+</div>
+
+<!-- editor -->
+<div class="ov" id="ovEdit" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <div class="sh-head"><h3 id="edTitle">오늘의 한 장</h3><button class="btn ghost" type="button" data-close>닫기</button></div>
+    <div><span class="lbl">날짜</span><input class="inp" id="edDate" type="date"></div>
+    <div><span class="lbl">누구의 기록인가요?</span><div class="row" id="edKids"></div></div>
+    <div><span class="lbl">사진 한 장</span>
+      <button class="drop" id="edDrop" type="button"><div class="hint"><b>사진 고르기</b>눌러서 사진을 넣어주세요</div></button>
+      <input id="edFile" type="file" accept="image/*" hidden>
+      <div class="row" style="margin-top:8px" id="edPhotoActs" hidden>
+        <button class="btn ghost" type="button" id="edPhotoChange">사진 바꾸기</button>
+        <button class="btn ghost" type="button" id="edPhotoRemove">사진 빼기</button>
+      </div>
+      <div class="err" id="edPhotoErr" hidden></div>
+    </div>
+    <div><span class="lbl">짧은 기록</span>
+      <textarea class="ta" id="edText" maxlength="300" placeholder="오늘 있었던 일을 한두 줄로 적어주세요"></textarea>
+      <div class="counter"><span id="edCount">0</span> / 300</div>
+    </div>
+    <div class="err" id="edErr" hidden></div>
+    <div class="actions"><button class="btn" type="button" data-close>취소</button><button class="btn moss" type="button" id="edSave">저장하기</button></div>
+  </div>
+</div>
+
+<!-- viewer -->
+<div class="ov" id="ovView" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="기록 보기">
+    <div class="sh-head"><h3>기록 보기</h3><button class="btn ghost" type="button" data-close>닫기</button></div>
+    <div id="vwPage"></div>
+    <div id="vwConfirm" class="confirm" hidden><span>이 기록을 지울까요? 사진도 함께 지워져요.</span>
+      <span class="row"><button class="btn" type="button" id="vwNo">아니요</button><button class="btn solid" type="button" id="vwYes" style="background:var(--danger);border-color:var(--danger)">지우기</button></span></div>
+    <div class="actions">
+      <button class="btn ghost" type="button" id="vwDel" style="color:var(--danger);margin-right:auto">지우기</button>
+      <button class="btn" type="button" id="vwEdit">수정</button>
+      <button class="btn moss" type="button" id="vwSave">이 장만 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- day list -->
+<div class="ov" id="ovDay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dyTitle">
+    <div class="sh-head"><h3 id="dyTitle"></h3><button class="btn ghost" type="button" data-close>닫기</button></div>
+    <div class="list" id="dyList"></div>
+    <div class="actions"><button class="btn solid" type="button" id="dyNew">이 날 기록하기</button></div>
+  </div>
+</div>
+
+<!-- save -->
+<div class="ov" id="ovSave" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="svTitle">
+    <div class="sh-head"><h3 id="svTitle">한글 파일로 저장</h3><button class="btn ghost" type="button" data-close>닫기</button></div>
+    <div><span class="lbl">어디까지 저장할까요?</span>
+      <div class="seg" id="svRange">
+        <button class="pick" type="button" data-r="day">하루</button>
+        <button class="pick" type="button" data-r="month">한 달</button>
+        <button class="pick" type="button" data-r="range">기간 지정</button>
+        <button class="pick" type="button" data-r="all">전체</button>
+      </div>
+    </div>
+    <div id="svDayBox"><span class="lbl">날짜</span><input class="inp" type="date" id="svDay"></div>
+    <div id="svMonthBox" hidden><span class="lbl">달</span><input class="inp" type="month" id="svMonth"></div>
+    <div id="svRangeBox" hidden><span class="lbl">기간</span><div class="row" style="align-items:center"><input class="inp" type="date" id="svFrom"><span>부터</span><input class="inp" type="date" id="svTo"><span>까지</span></div></div>
+    <div><span class="lbl">아이</span><div class="row" id="svKids"></div></div>
+    <label class="switch"><input type="checkbox" id="svHand" checked> 기록 아래에 손글씨 줄 넣기</label>
+    <div class="summary" id="svSummary"></div>
+    <div class="err" id="svErr" hidden></div>
+    <div class="actions"><button class="btn moss" type="button" id="svGo">한글 파일 만들기</button></div>
+  </div>
+</div>
+
+<!-- kids settings -->
+<div class="ov" id="ovKids" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="kdTitle">
+    <div class="sh-head"><h3 id="kdTitle">아이 정보</h3><button class="btn ghost" type="button" data-close>닫기</button></div>
+    <p style="margin:0;font-size:14px;color:var(--ink-2)">생일만 맞으면 나이는 기록한 날짜 기준으로 알아서 계산돼요.</p>
+    <div id="kdRows" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="btn ghost" type="button" id="kdAdd" style="align-self:flex-start">+ 아이 추가</button>
+    <div class="err" id="kdErr" hidden></div>
+    <div class="actions"><button class="btn moss" type="button" id="kdSave">저장하기</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const HWPX_PARTS = {"header": "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<hh:head xmlns:ha=\"http://www.hancom.co.kr/hwpml/2011/app\" xmlns:hp=\"http://www.hancom.co.kr/hwpml/2011/paragraph\" xmlns:hp10=\"http://www.hancom.co.kr/hwpml/2016/paragraph\" xmlns:hs=\"http://www.hancom.co.kr/hwpml/2011/section\" xmlns:hc=\"http://www.hancom.co.kr/hwpml/2011/core\" xmlns:hh=\"http://www.hancom.co.kr/hwpml/2011/head\" xmlns:hhs=\"http://www.hancom.co.kr/hwpml/2011/history\" xmlns:hm=\"http://www.hancom.co.kr/hwpml/2011/master-page\" xmlns:hpf=\"http://www.hancom.co.kr/schema/2011/hpf\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:opf=\"http://www.idpf.org/2007/opf/\" xmlns:ooxmlchart=\"http://www.hancom.co.kr/hwpml/2016/ooxmlchart\" xmlns:hwpunitchar=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\" xmlns:epub=\"http://www.idpf.org/2007/ops\" xmlns:config=\"urn:oasis:names:tc:opendocument:xmlns:config:1.0\" version=\"1.5\" secCnt=\"1\"><hh:beginNum page=\"1\" footnote=\"1\" endnote=\"1\" pic=\"1\" tbl=\"1\" equation=\"1\"/><hh:refList><hh:fontfaces itemCnt=\"7\"><hh:fontface lang=\"HANGUL\" fontCnt=\"2\"><hh:font id=\"0\" face=\"함초롬돋움\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><hh:font id=\"1\" face=\"함초롬바탕\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><\/hh:fontface><hh:fontface lang=\"LATIN\" fontCnt=\"2\"><hh:font id=\"0\" face=\"함초롬돋움\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><hh:font id=\"1\" face=\"함초롬바탕\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><\/hh:fontface><hh:fontface lang=\"HANJA\" fontCnt=\"2\"><hh:font id=\"0\" face=\"함초롬돋움\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><hh:font id=\"1\" face=\"함초롬바탕\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><\/hh:fontface><hh:fontface lang=\"JAPANESE\" fontCnt=\"2\"><hh:font id=\"0\" face=\"함초롬돋움\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><hh:font id=\"1\" face=\"함초롬바탕\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><\/hh:fontface><hh:fontface lang=\"OTHER\" fontCnt=\"2\"><hh:font id=\"0\" face=\"함초롬돋움\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><hh:font id=\"1\" face=\"함초롬바탕\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><\/hh:fontface><hh:fontface lang=\"SYMBOL\" fontCnt=\"2\"><hh:font id=\"0\" face=\"함초롬돋움\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><hh:font id=\"1\" face=\"함초롬바탕\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><\/hh:fontface><hh:fontface lang=\"USER\" fontCnt=\"2\"><hh:font id=\"0\" face=\"함초롬돋움\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><hh:font id=\"1\" face=\"함초롬바탕\" type=\"TTF\" isEmbedded=\"0\"><hh:typeInfo familyType=\"FCAT_GOTHIC\" weight=\"6\" proportion=\"4\" contrast=\"0\" strokeVariation=\"1\" armStyle=\"1\" letterform=\"1\" midline=\"1\" xHeight=\"1\"/><\/hh:font><\/hh:fontface><\/hh:fontfaces><hh:borderFills itemCnt=\"4\"><hh:borderFill id=\"1\" threeD=\"0\" shadow=\"0\" centerLine=\"NONE\" breakCellSeparateLine=\"0\"><hh:slash type=\"NONE\" Crooked=\"0\" isCounter=\"0\"/><hh:backSlash type=\"NONE\" Crooked=\"0\" isCounter=\"0\"/><hh:leftBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:rightBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:topBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:bottomBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:diagonal type=\"SOLID\" width=\"0.1 mm\" color=\"#000000\"/><\/hh:borderFill><hh:borderFill id=\"2\" threeD=\"0\" shadow=\"0\" centerLine=\"NONE\" breakCellSeparateLine=\"0\"><hh:slash type=\"NONE\" Crooked=\"0\" isCounter=\"0\"/><hh:backSlash type=\"NONE\" Crooked=\"0\" isCounter=\"0\"/><hh:leftBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:rightBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:topBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:bottomBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:diagonal type=\"SOLID\" width=\"0.1 mm\" color=\"#000000\"/><hc:fillBrush><hc:winBrush faceColor=\"none\" hatchColor=\"#999999\" alpha=\"0\"/><\/hc:fillBrush><\/hh:borderFill><hh:borderFill id=\"3\" threeD=\"0\" shadow=\"0\" centerLine=\"NONE\" breakCellSeparateLine=\"0\"><hh:slash type=\"NONE\" Crooked=\"0\" isCounter=\"0\"/><hh:backSlash type=\"NONE\" Crooked=\"0\" isCounter=\"0\"/><hh:leftBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:rightBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:topBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:bottomBorder type=\"SOLID\" width=\"0.12 mm\" color=\"#D9CBB4\"/><hh:diagonal type=\"SOLID\" width=\"0.1 mm\" color=\"#000000\"/><hc:fillBrush><hc:winBrush faceColor=\"none\" hatchColor=\"#999999\" alpha=\"0\"/><\/hc:fillBrush><\/hh:borderFill><hh:borderFill id=\"4\" threeD=\"0\" shadow=\"0\" centerLine=\"NONE\" breakCellSeparateLine=\"0\"><hh:slash type=\"NONE\" Crooked=\"0\" isCounter=\"0\"/><hh:backSlash type=\"NONE\" Crooked=\"0\" isCounter=\"0\"/><hh:leftBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:rightBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:topBorder type=\"NONE\" width=\"0.1 mm\" color=\"#000000\"/><hh:bottomBorder type=\"SOLID\" width=\"0.4 mm\" color=\"#9C8466\"/><hh:diagonal type=\"SOLID\" width=\"0.1 mm\" color=\"#000000\"/><hc:fillBrush><hc:winBrush faceColor=\"none\" hatchColor=\"#999999\" alpha=\"0\"/><\/hc:fillBrush><\/hh:borderFill><\/hh:borderFills><hh:charProperties itemCnt=\"13\"><hh:charPr id=\"0\" height=\"1000\" textColor=\"#000000\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"1\" latin=\"1\" hanja=\"1\" japanese=\"1\" other=\"1\" symbol=\"1\" user=\"1\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"1\" height=\"1000\" textColor=\"#000000\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"2\" height=\"900\" textColor=\"#000000\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"3\" height=\"900\" textColor=\"#000000\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"1\" latin=\"1\" hanja=\"1\" japanese=\"1\" other=\"1\" symbol=\"1\" user=\"1\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"4\" height=\"900\" textColor=\"#000000\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"-5\" latin=\"-5\" hanja=\"-5\" japanese=\"-5\" other=\"-5\" symbol=\"-5\" user=\"-5\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"5\" height=\"1600\" textColor=\"#2E74B5\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"6\" height=\"1100\" textColor=\"#000000\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"7\" height=\"1100\" textColor=\"#9C8466\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"10\" latin=\"10\" hanja=\"10\" japanese=\"10\" other=\"10\" symbol=\"10\" user=\"10\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"8\" height=\"2400\" textColor=\"#3B2F25\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"-2\" latin=\"-2\" hanja=\"-2\" japanese=\"-2\" other=\"-2\" symbol=\"-2\" user=\"-2\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:bold/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"9\" height=\"1200\" textColor=\"#6E5C49\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"10\" height=\"1250\" textColor=\"#2E2620\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"1\" latin=\"1\" hanja=\"1\" japanese=\"1\" other=\"1\" symbol=\"1\" user=\"1\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"11\" height=\"850\" textColor=\"#B3A48D\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"5\" latin=\"5\" hanja=\"5\" japanese=\"5\" other=\"5\" symbol=\"5\" user=\"5\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><hh:charPr id=\"12\" height=\"1300\" textColor=\"#9C8466\" shadeColor=\"none\" useFontSpace=\"0\" useKerning=\"0\" symMark=\"NONE\" borderFillIDRef=\"2\"><hh:fontRef hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:ratio hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:spacing hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:relSz hangul=\"100\" latin=\"100\" hanja=\"100\" japanese=\"100\" other=\"100\" symbol=\"100\" user=\"100\"/><hh:offset hangul=\"0\" latin=\"0\" hanja=\"0\" japanese=\"0\" other=\"0\" symbol=\"0\" user=\"0\"/><hh:underline type=\"NONE\" shape=\"SOLID\" color=\"#000000\"/><hh:strikeout shape=\"NONE\" color=\"#000000\"/><hh:outline type=\"NONE\"/><hh:shadow type=\"NONE\" color=\"#C0C0C0\" offsetX=\"10\" offsetY=\"10\"/><\/hh:charPr><\/hh:charProperties><hh:tabProperties itemCnt=\"3\"><hh:tabPr id=\"0\" autoTabLeft=\"0\" autoTabRight=\"0\"/><hh:tabPr id=\"1\" autoTabLeft=\"1\" autoTabRight=\"0\"/><hh:tabPr id=\"2\" autoTabLeft=\"0\" autoTabRight=\"1\"/><\/hh:tabProperties><hh:numberings itemCnt=\"1\"><hh:numbering id=\"1\" start=\"0\"><hh:paraHead start=\"1\" level=\"1\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"DIGIT\" charPrIDRef=\"4294967295\" checkable=\"0\">^1.<\/hh:paraHead><hh:paraHead start=\"1\" level=\"2\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"HANGUL_SYLLABLE\" charPrIDRef=\"4294967295\" checkable=\"0\">^2.<\/hh:paraHead><hh:paraHead start=\"1\" level=\"3\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"DIGIT\" charPrIDRef=\"4294967295\" checkable=\"0\">^3)<\/hh:paraHead><hh:paraHead start=\"1\" level=\"4\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"HANGUL_SYLLABLE\" charPrIDRef=\"4294967295\" checkable=\"0\">^4)<\/hh:paraHead><hh:paraHead start=\"1\" level=\"5\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"DIGIT\" charPrIDRef=\"4294967295\" checkable=\"0\">(^5)<\/hh:paraHead><hh:paraHead start=\"1\" level=\"6\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"HANGUL_SYLLABLE\" charPrIDRef=\"4294967295\" checkable=\"0\">(^6)<\/hh:paraHead><hh:paraHead start=\"1\" level=\"7\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"CIRCLED_DIGIT\" charPrIDRef=\"4294967295\" checkable=\"1\">^7<\/hh:paraHead><hh:paraHead start=\"1\" level=\"8\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"CIRCLED_HANGUL_SYLLABLE\" charPrIDRef=\"4294967295\" checkable=\"1\">^8<\/hh:paraHead><hh:paraHead start=\"1\" level=\"9\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"HANGUL_JAMO\" charPrIDRef=\"4294967295\" checkable=\"0\"/><hh:paraHead start=\"1\" level=\"10\" align=\"LEFT\" useInstWidth=\"1\" autoIndent=\"1\" widthAdjust=\"0\" textOffsetType=\"PERCENT\" textOffset=\"50\" numFormat=\"ROMAN_SMALL\" charPrIDRef=\"4294967295\" checkable=\"1\"/><\/hh:numbering><\/hh:numberings><hh:paraProperties itemCnt=\"27\"><hh:paraPr id=\"0\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"1\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"1500\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"3000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"2\" tabPrIDRef=\"1\" condense=\"20\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"1000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"2000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"3\" tabPrIDRef=\"1\" condense=\"20\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"1\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"2000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"4000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"4\" tabPrIDRef=\"1\" condense=\"20\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"2\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"3000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"6000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"5\" tabPrIDRef=\"1\" condense=\"20\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"3\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"4000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"8000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"6\" tabPrIDRef=\"1\" condense=\"20\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"4\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"5000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"10000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"7\" tabPrIDRef=\"1\" condense=\"20\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"5\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"6000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"12000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"8\" tabPrIDRef=\"1\" condense=\"20\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"6\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"7000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"14000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"9\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"150\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"150\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"10\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"-1310\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"130\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"-2620\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"130\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"11\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"LEFT\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"130\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"130\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"12\" tabPrIDRef=\"1\" condense=\"20\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"LEFT\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"1200\" unit=\"HWPUNIT\"/><hc:next value=\"300\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"2400\" unit=\"HWPUNIT\"/><hc:next value=\"600\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"13\" tabPrIDRef=\"2\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"LEFT\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"700\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"1400\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"14\" tabPrIDRef=\"2\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"LEFT\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"1100\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"700\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"2200\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"1400\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"15\" tabPrIDRef=\"2\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"LEFT\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"2200\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"700\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"4400\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"1400\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"16\" tabPrIDRef=\"1\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/paragraph\"><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"8\"/><\/hp:case><hp:default><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><\/hp:default><\/hp:switch><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"9000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"18000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"17\" tabPrIDRef=\"1\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/paragraph\"><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"9\"/><\/hp:case><hp:default><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><\/hp:default><\/hp:switch><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"10000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"20000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"18\" tabPrIDRef=\"1\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/paragraph\"><hh:heading type=\"OUTLINE\" idRef=\"0\" level=\"7\"/><\/hp:case><hp:default><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><\/hp:default><\/hp:switch><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"8000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"16000\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"19\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"KEEP_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"800\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"150\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"1600\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"150\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\" id=\"20\"><hh:align horizontal=\"CENTER\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"21\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"CENTER\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"120\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"120\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"22\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"CENTER\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"300\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"150\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"300\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"150\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"4\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"700\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"23\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"CENTER\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"1400\" unit=\"HWPUNIT\"/><hc:next value=\"1000\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"100\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"1400\" unit=\"HWPUNIT\"/><hc:next value=\"1000\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"100\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"24\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"JUSTIFY\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"200\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"200\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"25\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"LEFT\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"230\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"0\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"230\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"3\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><hh:paraPr id=\"26\" tabPrIDRef=\"0\" condense=\"0\" fontLineHeight=\"0\" snapToGrid=\"1\" suppressLineNumbers=\"0\" checked=\"0\" textDir=\"LTR\"><hh:align horizontal=\"CENTER\" vertical=\"BASELINE\"/><hh:heading type=\"NONE\" idRef=\"0\" level=\"0\"/><hh:breakSetting breakLatinWord=\"KEEP_WORD\" breakNonLatinWord=\"BREAK_WORD\" widowOrphan=\"0\" keepWithNext=\"0\" keepLines=\"0\" pageBreakBefore=\"0\" lineWrap=\"BREAK\"/><hh:autoSpacing eAsianEng=\"0\" eAsianNum=\"0\"/><hp:switch><hp:case hp:required-namespace=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\"><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"1600\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"100\" unit=\"HWPUNIT\"/><\/hp:case><hp:default><hh:margin><hc:intent value=\"0\" unit=\"HWPUNIT\"/><hc:left value=\"0\" unit=\"HWPUNIT\"/><hc:right value=\"0\" unit=\"HWPUNIT\"/><hc:prev value=\"1600\" unit=\"HWPUNIT\"/><hc:next value=\"0\" unit=\"HWPUNIT\"/><\/hh:margin><hh:lineSpacing type=\"PERCENT\" value=\"100\" unit=\"HWPUNIT\"/><\/hp:default><\/hp:switch><hh:border borderFillIDRef=\"2\" offsetLeft=\"0\" offsetRight=\"0\" offsetTop=\"0\" offsetBottom=\"0\" connect=\"0\" ignoreMargin=\"0\"/><\/hh:paraPr><\/hh:paraProperties><hh:styles itemCnt=\"23\"><hh:style id=\"0\" type=\"PARA\" name=\"바탕글\" engName=\"Normal\" paraPrIDRef=\"0\" charPrIDRef=\"0\" nextStyleIDRef=\"0\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"1\" type=\"PARA\" name=\"본문\" engName=\"Body\" paraPrIDRef=\"1\" charPrIDRef=\"0\" nextStyleIDRef=\"1\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"2\" type=\"PARA\" name=\"개요 1\" engName=\"Outline 1\" paraPrIDRef=\"2\" charPrIDRef=\"0\" nextStyleIDRef=\"2\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"3\" type=\"PARA\" name=\"개요 2\" engName=\"Outline 2\" paraPrIDRef=\"3\" charPrIDRef=\"0\" nextStyleIDRef=\"3\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"4\" type=\"PARA\" name=\"개요 3\" engName=\"Outline 3\" paraPrIDRef=\"4\" charPrIDRef=\"0\" nextStyleIDRef=\"4\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"5\" type=\"PARA\" name=\"개요 4\" engName=\"Outline 4\" paraPrIDRef=\"5\" charPrIDRef=\"0\" nextStyleIDRef=\"5\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"6\" type=\"PARA\" name=\"개요 5\" engName=\"Outline 5\" paraPrIDRef=\"6\" charPrIDRef=\"0\" nextStyleIDRef=\"6\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"7\" type=\"PARA\" name=\"개요 6\" engName=\"Outline 6\" paraPrIDRef=\"7\" charPrIDRef=\"0\" nextStyleIDRef=\"7\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"8\" type=\"PARA\" name=\"개요 7\" engName=\"Outline 7\" paraPrIDRef=\"8\" charPrIDRef=\"0\" nextStyleIDRef=\"8\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"9\" type=\"PARA\" name=\"개요 8\" engName=\"Outline 8\" paraPrIDRef=\"18\" charPrIDRef=\"0\" nextStyleIDRef=\"9\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"10\" type=\"PARA\" name=\"개요 9\" engName=\"Outline 9\" paraPrIDRef=\"16\" charPrIDRef=\"0\" nextStyleIDRef=\"10\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"11\" type=\"PARA\" name=\"개요 10\" engName=\"Outline 10\" paraPrIDRef=\"17\" charPrIDRef=\"0\" nextStyleIDRef=\"11\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"12\" type=\"CHAR\" name=\"쪽 번호\" engName=\"Page Number\" paraPrIDRef=\"0\" charPrIDRef=\"1\" nextStyleIDRef=\"0\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"13\" type=\"CHAR\" name=\"줄 번호\" engName=\"Line Number\" paraPrIDRef=\"0\" charPrIDRef=\"0\" nextStyleIDRef=\"0\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"14\" type=\"PARA\" name=\"머리말\" engName=\"Header\" paraPrIDRef=\"9\" charPrIDRef=\"2\" nextStyleIDRef=\"14\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"15\" type=\"PARA\" name=\"각주\" engName=\"Footnote\" paraPrIDRef=\"10\" charPrIDRef=\"3\" nextStyleIDRef=\"15\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"16\" type=\"PARA\" name=\"미주\" engName=\"Endnote\" paraPrIDRef=\"10\" charPrIDRef=\"3\" nextStyleIDRef=\"16\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"17\" type=\"PARA\" name=\"메모\" engName=\"Memo\" paraPrIDRef=\"11\" charPrIDRef=\"4\" nextStyleIDRef=\"17\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"18\" type=\"PARA\" name=\"차례 제목\" engName=\"TOC Heading\" paraPrIDRef=\"12\" charPrIDRef=\"5\" nextStyleIDRef=\"18\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"19\" type=\"PARA\" name=\"차례 1\" engName=\"TOC 1\" paraPrIDRef=\"13\" charPrIDRef=\"6\" nextStyleIDRef=\"19\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"20\" type=\"PARA\" name=\"차례 2\" engName=\"TOC 2\" paraPrIDRef=\"14\" charPrIDRef=\"6\" nextStyleIDRef=\"20\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"21\" type=\"PARA\" name=\"차례 3\" engName=\"TOC 3\" paraPrIDRef=\"15\" charPrIDRef=\"6\" nextStyleIDRef=\"21\" langID=\"1042\" lockForm=\"0\"/><hh:style id=\"22\" type=\"PARA\" name=\"캡션\" engName=\"Caption\" paraPrIDRef=\"19\" charPrIDRef=\"0\" nextStyleIDRef=\"22\" langID=\"1042\" lockForm=\"0\"/><\/hh:styles><hh:binDataList itemCnt=\"1\"><hh:binItem id=\"0\" Type=\"Embedding\" BinData=\"BIN0001.jpg\" Format=\"jpg\"/><\/hh:binDataList><\/hh:refList><hh:compatibleDocument targetProgram=\"HWP201X\"><hh:layoutCompatibility/><\/hh:compatibleDocument><hh:docOption><hh:linkinfo path=\"\" pageInherit=\"0\" footnoteInherit=\"0\"/><\/hh:docOption><hh:metaTag>{\"name\":\"\"}<\/hh:metaTag><hh:trackchageConfig flags=\"56\"/><\/hh:head>", "secOpen": "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<hs:sec xmlns:ha=\"http://www.hancom.co.kr/hwpml/2011/app\" xmlns:hp=\"http://www.hancom.co.kr/hwpml/2011/paragraph\" xmlns:hp10=\"http://www.hancom.co.kr/hwpml/2016/paragraph\" xmlns:hs=\"http://www.hancom.co.kr/hwpml/2011/section\" xmlns:hc=\"http://www.hancom.co.kr/hwpml/2011/core\" xmlns:hh=\"http://www.hancom.co.kr/hwpml/2011/head\" xmlns:hhs=\"http://www.hancom.co.kr/hwpml/2011/history\" xmlns:hm=\"http://www.hancom.co.kr/hwpml/2011/master-page\" xmlns:hpf=\"http://www.hancom.co.kr/schema/2011/hpf\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:opf=\"http://www.idpf.org/2007/opf/\" xmlns:ooxmlchart=\"http://www.hancom.co.kr/hwpml/2016/ooxmlchart\" xmlns:hwpunitchar=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\" xmlns:epub=\"http://www.idpf.org/2007/ops\" xmlns:config=\"urn:oasis:names:tc:opendocument:xmlns:config:1.0\">", "secInner": "<hp:secPr id=\"\" textDirection=\"HORIZONTAL\" spaceColumns=\"1134\" tabStop=\"8000\" tabStopVal=\"4000\" tabStopUnit=\"HWPUNIT\" outlineShapeIDRef=\"1\" memoShapeIDRef=\"0\" textVerticalWidthHead=\"0\" masterPageCnt=\"0\"><hp:grid lineGrid=\"0\" charGrid=\"0\" wonggojiFormat=\"0\"/><hp:startNum pageStartsOn=\"BOTH\" page=\"0\" pic=\"0\" tbl=\"0\" equation=\"0\"/><hp:visibility hideFirstHeader=\"0\" hideFirstFooter=\"0\" hideFirstMasterPage=\"0\" border=\"SHOW_ALL\" fill=\"SHOW_ALL\" hideFirstPageNum=\"0\" hideFirstEmptyLine=\"0\" showLineNumber=\"0\"/><hp:lineNumberShape restartType=\"0\" countBy=\"0\" distance=\"0\" startNumber=\"0\"/><hp:pagePr landscape=\"WIDELY\" width=\"59528\" height=\"84186\" gutterType=\"LEFT_ONLY\"><hp:margin header=\"0\" footer=\"2268\" gutter=\"0\" left=\"7087\" right=\"4252\" top=\"4252\" bottom=\"2268\"/><\/hp:pagePr><hp:footNotePr><hp:autoNumFormat type=\"DIGIT\" userChar=\"\" prefixChar=\"\" suffixChar=\")\" supscript=\"0\"/><hp:noteLine length=\"-1\" type=\"SOLID\" width=\"0.12 mm\" color=\"#000000\"/><hp:noteSpacing betweenNotes=\"283\" belowLine=\"567\" aboveLine=\"850\"/><hp:numbering type=\"CONTINUOUS\" newNum=\"1\"/><hp:placement place=\"EACH_COLUMN\" beneathText=\"0\"/><\/hp:footNotePr><hp:endNotePr><hp:autoNumFormat type=\"DIGIT\" userChar=\"\" prefixChar=\"\" suffixChar=\")\" supscript=\"0\"/><hp:noteLine length=\"14692344\" type=\"SOLID\" width=\"0.12 mm\" color=\"#000000\"/><hp:noteSpacing betweenNotes=\"0\" belowLine=\"567\" aboveLine=\"850\"/><hp:numbering type=\"CONTINUOUS\" newNum=\"1\"/><hp:placement place=\"END_OF_DOCUMENT\" beneathText=\"0\"/><\/hp:endNotePr><hp:pageBorderFill type=\"BOTH\" borderFillIDRef=\"1\" textBorder=\"PAPER\" headerInside=\"0\" footerInside=\"0\" fillArea=\"PAPER\"><hp:offset left=\"1417\" right=\"1417\" top=\"1417\" bottom=\"1417\"/><\/hp:pageBorderFill><hp:pageBorderFill type=\"EVEN\" borderFillIDRef=\"1\" textBorder=\"PAPER\" headerInside=\"0\" footerInside=\"0\" fillArea=\"PAPER\"><hp:offset left=\"1417\" right=\"1417\" top=\"1417\" bottom=\"1417\"/><\/hp:pageBorderFill><hp:pageBorderFill type=\"ODD\" borderFillIDRef=\"1\" textBorder=\"PAPER\" headerInside=\"0\" footerInside=\"0\" fillArea=\"PAPER\"><hp:offset left=\"1417\" right=\"1417\" top=\"1417\" bottom=\"1417\"/><\/hp:pageBorderFill><\/hp:secPr><hp:ctrl><hp:colPr id=\"\" type=\"NEWSPAPER\" layout=\"LEFT\" colCount=\"1\" sameSz=\"1\" sameGap=\"0\"/><\/hp:ctrl>", "hpfHead": "<?xml version='1.0' encoding='utf-8'?>\n<opf:package xmlns:ha=\"http://www.hancom.co.kr/hwpml/2011/app\" xmlns:hp=\"http://www.hancom.co.kr/hwpml/2011/paragraph\" xmlns:hp10=\"http://www.hancom.co.kr/hwpml/2011/paragraph\" xmlns:hs=\"http://www.hancom.co.kr/hwpml/2011/section\" xmlns:hc=\"http://www.hancom.co.kr/hwpml/2011/core\" xmlns:hh=\"http://www.hancom.co.kr/hwpml/2011/head\" xmlns:hhs=\"http://www.hancom.co.kr/hwpml/2011/history\" xmlns:hm=\"http://www.hancom.co.kr/hwpml/2011/master-page\" xmlns:hpf=\"http://www.hancom.co.kr/schema/2011/hpf\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:opf=\"http://www.idpf.org/2007/opf/\" xmlns:ooxmlchart=\"http://www.hancom.co.kr/hwpml/2016/ooxmlchart\" xmlns:hwpunitchar=\"http://www.hancom.co.kr/hwpml/2016/HwpUnitChar\" xmlns:epub=\"http://www.idpf.org/2007/ops\" xmlns:config=\"urn:oasis:names:tc:opendocument:xmlns:config:1.0\" version=\"\" unique-identifier=\"\" id=\"\">", "C": {"YEAR": 7, "DATE": 8, "KIDS": 9, "BODY": 10, "FOOT": 11, "WEEK": 12}, "P": {"HEAD": 21, "KIDS": 22, "PHOTO": 23, "BODY": 24, "LINE": 25, "FOOT": 26}, "version.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?><hv:HCFVersion xmlns:hv=\"http://www.hancom.co.kr/hwpml/2011/version\" tagetApplication=\"WORDPROCESSOR\" major=\"5\" minor=\"1\" micro=\"1\" buildNumber=\"0\" os=\"1\" xmlVersion=\"1.5\" application=\"Hancom Office Hangul\" appVersion=\"13, 0, 0, 1408 WIN32LEWindows_10\"/>", "settings.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?><ha:HWPApplicationSetting xmlns:ha=\"http://www.hancom.co.kr/hwpml/2011/app\" xmlns:config=\"urn:oasis:names:tc:opendocument:xmlns:config:1.0\"><ha:CaretPosition listIDRef=\"0\" paraIDRef=\"0\" pos=\"16\"/><\/ha:HWPApplicationSetting>", "META-INF/container.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?><ocf:container xmlns:ocf=\"urn:oasis:names:tc:opendocument:xmlns:container\" xmlns:hpf=\"http://www.hancom.co.kr/schema/2011/hpf\"><ocf:rootfiles><ocf:rootfile full-path=\"Contents/content.hpf\" media-type=\"application/hwpml-package+xml\"/><ocf:rootfile full-path=\"Preview/PrvText.txt\" media-type=\"text/plain\"/><ocf:rootfile full-path=\"META-INF/container.rdf\" media-type=\"application/rdf+xml\"/><\/ocf:rootfiles><\/ocf:container>", "META-INF/container.rdf": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><rdf:Description rdf:about=\"\"><ns0:hasPart xmlns:ns0=\"http://www.hancom.co.kr/hwpml/2016/meta/pkg#\" rdf:resource=\"Contents/header.xml\"/><\/rdf:Description><rdf:Description rdf:about=\"Contents/header.xml\"><rdf:type rdf:resource=\"http://www.hancom.co.kr/hwpml/2016/meta/pkg#HeaderFile\"/><\/rdf:Description><rdf:Description rdf:about=\"\"><ns0:hasPart xmlns:ns0=\"http://www.hancom.co.kr/hwpml/2016/meta/pkg#\" rdf:resource=\"Contents/section0.xml\"/><\/rdf:Description><rdf:Description rdf:about=\"Contents/section0.xml\"><rdf:type rdf:resource=\"http://www.hancom.co.kr/hwpml/2016/meta/pkg#SectionFile\"/><\/rdf:Description><rdf:Description rdf:about=\"\"><rdf:type rdf:resource=\"http://www.hancom.co.kr/hwpml/2016/meta/pkg#Document\"/><\/rdf:Description><\/rdf:RDF>", "META-INF/manifest.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?><odf:manifest xmlns:odf=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"/>"};
+// HWPX builder — one record per A4 page. Shared by the app and the Node test.
+function hwpxEsc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function buildHwpx(JSZip, PARTS, pages) {
+  const C = PARTS.C, P = PARTS.P;
+  let pid = 1000000001;
+  const nextId = () => String(pid++);
+  const MAX_W = 42520, MAX_H = 31181; // 150mm x 110mm in HWPUNIT
+  const zip0 = new JSZip();
+  const zip = { file: (n, d, o) => zip0.file(n, d, Object.assign({ createFolders: false }, o || {})), generateAsync: (o) => zip0.generateAsync(o) };
+  zip.file('mimetype', 'application/hwp+zip', { compression: 'STORE' });
+  zip.file('version.xml', PARTS['version.xml']);
+  zip.file('META-INF/container.xml', PARTS['META-INF/container.xml']);
+  zip.file('META-INF/container.rdf', PARTS['META-INF/container.rdf']);
+  zip.file('META-INF/manifest.xml', PARTS['META-INF/manifest.xml']);
+  zip.file('settings.xml', PARTS['settings.xml']);
+  zip.file('Contents/header.xml', PARTS.header);
+
+  const para = (paraPr, runs, pageBreak) =>
+    `<hp:p id="${nextId()}" paraPrIDRef="${paraPr}" styleIDRef="0" pageBreak="${pageBreak ? 1 : 0}" columnBreak="0" merged="0">${runs}</hp:p>`;
+  const run = (charPr, text) => text === '' || text == null
+    ? `<hp:run charPrIDRef="${charPr}"/>`
+    : `<hp:run charPrIDRef="${charPr}"><hp:t>${hwpxEsc(text)}</hp:t></hp:run>`;
+
+  const items = [];
+  let body = '';
+  let imgNo = 0;
+  const preview = [];
+
+  pages.forEach((pg, i) => {
+    const first = i === 0;
+    const secRun = first ? `<hp:run charPrIDRef="0">${PARTS.secInner}</hp:run>` : '';
+    body += para(P.HEAD, secRun + run(C.YEAR, pg.year), !first);
+    body += para(P.HEAD, run(C.DATE, pg.dateText) + run(C.WEEK, '  ' + pg.weekday));
+    body += para(P.KIDS, run(C.KIDS, pg.kidsText || ''));
+    preview.push(`${pg.year} ${pg.dateText} ${pg.weekday}`);
+
+    if (pg.img) {
+      imgNo += 1;
+      const binId = 'image' + imgNo;
+      const ext = pg.img.ext || 'jpg';
+      zip.file(`BinData/${binId}.${ext}`, pg.img.bytes);
+      items.push(`<opf:item id="${binId}" href="BinData/${binId}.${ext}" media-type="image/${ext === 'png' ? 'png' : 'jpeg'}" isEmbeded="1"/>`);
+      const r = Math.min(MAX_W / pg.img.w, MAX_H / pg.img.h);
+      const w = Math.round(pg.img.w * r), h = Math.round(pg.img.h * r);
+      const id = nextId();
+      const pic = `<hp:pic textWrap="TOP_AND_BOTTOM" textFlow="BOTH_SIDES" reverse="0" id="${id}" zOrder="${imgNo}" numberingType="PICTURE" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${id}">` +
+        `<hp:offset x="0" y="0"/><hp:orgSz width="${w}" height="${h}"/><hp:curSz width="${w}" height="${h}"/><hp:flip horizontal="0" vertical="0"/>` +
+        `<hp:rotationInfo angle="0" centerX="${Math.round(w / 2)}" centerY="${Math.round(h / 2)}" rotateimage="1"/>` +
+        `<hp:renderingInfo><hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/><hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/><hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/></hp:renderingInfo>` +
+        `<hp:imgRect><hc:pt0 x="0" y="0"/><hc:pt1 x="${w}" y="0"/><hc:pt2 x="${w}" y="${h}"/><hc:pt3 x="0" y="${h}"/></hp:imgRect>` +
+        `<hp:imgClip left="0" right="${w}" top="0" bottom="${h}"/><hp:inMargin left="0" right="0" top="0" bottom="0"/><hp:imgDim dimwidth="${w}" dimheight="${h}"/>` +
+        `<hc:img binaryItemIDRef="${binId}" bright="0" contrast="0" effect="REAL_PIC" alpha="0"/><hp:effects/>` +
+        `<hp:sz width="${w}" height="${h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>` +
+        `<hp:pos treatAsChar="1" affectLSpacing="0" flowWithText="1" allowOverlap="0" holdAnchorAndSO="0" vertRelTo="PARA" horzRelTo="COLUMN" vertAlign="TOP" horzAlign="CENTER" vertOffset="0" horzOffset="0"/>` +
+        `<hp:outMargin left="0" right="0" top="0" bottom="0"/><hp:shapeComment/></hp:pic>`;
+      body += para(P.PHOTO, `<hp:run charPrIDRef="0">${pic}</hp:run>`);
+    } else {
+      body += para(P.PHOTO, run(C.FOOT, ''));
+    }
+
+    // Typed record, then ruled lines for handwriting.
+    const lines = (pg.text || '').replace(/\r/g, '').split('\n');
+    let used = 0;
+    if (pg.text && pg.text.trim()) {
+      lines.forEach(l => {
+        body += para(P.BODY, run(C.BODY, l));
+        used += Math.max(1, Math.ceil(l.length / 36));
+      });
+    }
+    const budget = pg.img ? (pg.imgTall ? 6 : 9) : 16;
+    const ruled = pg.handwrite ? Math.max(2, budget - used) : 0;
+    for (let k = 0; k < ruled; k++) body += para(P.LINE, run(C.BODY, ''));
+  });
+
+  const sec = PARTS.secOpen + body + '</hs:sec>';
+  zip.file('Contents/section0.xml', sec);
+  zip.file('Preview/PrvText.txt', preview.join('\r\n').slice(0, 1000));
+
+  const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  const hpf = PARTS.hpfHead +
+    `<opf:metadata><opf:title>${hwpxEsc(pages.title || '하루 한 장')}</opf:title><opf:language>ko</opf:language>` +
+    `<opf:meta name="creator" content="text">하루 한 장</opf:meta><opf:meta name="subject" content="text"/><opf:meta name="description" content="text"/>` +
+    `<opf:meta name="lastsaveby" content="text">하루 한 장</opf:meta><opf:meta name="CreatedDate" content="text">${now}</opf:meta>` +
+    `<opf:meta name="ModifiedDate" content="text">${now}</opf:meta><opf:meta name="keyword" content="text"/></opf:metadata>` +
+    `<opf:manifest><opf:item id="header" href="Contents/header.xml" media-type="application/xml"/>` +
+    `<opf:item id="section0" href="Contents/section0.xml" media-type="application/xml"/>` +
+    `<opf:item id="settings" href="settings.xml" media-type="application/xml"/>${items.join('')}</opf:manifest>` +
+    `<opf:spine><opf:itemref idref="header" linear="yes"/><opf:itemref idref="section0" linear="yes"/></opf:spine></opf:package>`;
+  zip.file('Contents/content.hpf', hpf);
+  return zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE', mimeType: 'application/hwp+zip' });
+}
+
+
+
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, getDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCVqWRnBMtQFUU51xzukqVEnFts-VqEnhA",
+  authDomain: "seogu-bapsang.firebaseapp.com",
+  projectId: "seogu-bapsang",
+  storageBucket: "seogu-bapsang.firebasestorage.app",
+  messagingSenderId: "335336990084",
+  appId: "1:335336990084:web:899e3f4d3532ac4e2329d1"
+};
+const fb = initializeApp(firebaseConfig);
+const db = getFirestore(fb);
+const ENTRIES = 'haru_entries', PHOTOS = 'haru_photos', SETTINGS = 'haru_settings';
+const DEFAULT_KIDS = [
+  { id: 'eunwoo', name: '은우', birth: '2020-03-23', color: '#B9794A' },
+  { id: 'seonwoo', name: '선우', birth: '2022-08-12', color: '#5F7F94' }
+];
+
+const $ = id => document.getElementById(id);
+const WD = ['일','월','화','수','목','금','토'];
+const KID_COLORS = ['#B9794A','#5F7F94','#7A8A5C','#9A6A86'];
+const S = { kids:[], kidsLoaded:false, entries:[], loaded:false, kidFilter:null,
+  ym:null, view:null, editing:null, photo:null, saveRange:'day', saveKids:null };
+
+/* ---------- dates & ages ---------- */
+const pad = n => String(n).padStart(2,'0');
+const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const parse = s => { const [y,m,d]=s.split('-').map(Number); return {y,m,d,wd:new Date(y,m-1,d).getDay()}; };
+S.ym = (() => { const t=parse(todayStr()); return {y:t.y,m:t.m}; })();
+function ageAt(birth, on){
+  if(!birth) return '';
+  const b=parse(birth), d=parse(on);
+  let y=d.y-b.y, m=d.m-b.m; if(d.d<b.d) m--; if(m<0){y--; m+=12;}
+  if(y<0) return '태어나기 전';
+  if(y===0) return m===0 ? '갓 태어남' : `${m}개월`;
+  return m===0 ? `만 ${y}세` : `만 ${y}세 ${m}개월`;
+}
+const kidById = id => S.kids.find(k=>k.id===id);
+const kidColor = (k,i) => k.color || KID_COLORS[i % KID_COLORS.length];
+const kidsLine = e => (e.kids||[]).map(id=>kidById(id)).filter(Boolean).map(k=>`${k.name} ${ageAt(k.birth,e.date)}`).join('  ·  ');
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- toast & sheets ---------- */
+let toastT;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2600); }
+function open(id){ $(id).hidden=false; document.body.style.overflow='hidden'; }
+function close(id){ $(id).hidden=true; if(![...document.querySelectorAll('.ov')].some(o=>!o.hidden)) document.body.style.overflow=''; }
+document.querySelectorAll('.ov').forEach(ov=>{
+  ov.addEventListener('click',e=>{ if(e.target===ov || e.target.closest('[data-close]')) close(ov.id); });
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const o=[...document.querySelectorAll('.ov')].filter(o=>!o.hidden).pop(); if(o) close(o.id); }});
+
+const visible = () => S.entries.filter(e=>!S.kidFilter || (e.kids||[]).includes(S.kidFilter));
+const sortEntries = arr => arr.slice().sort((a,b)=> a.date===b.date ? String(a.createdAt).localeCompare(String(b.createdAt)) : a.date.localeCompare(b.date));
+
+/* ---------- render ---------- */
+function renderKids(){
+  const box=$('kids'); box.innerHTML='';
+  const t=todayStr();
+  const all=document.createElement('button'); all.type='button'; all.className='kid all';
+  all.setAttribute('aria-pressed', String(!S.kidFilter));
+  all.innerHTML=`<span class="dot" style="background:var(--ink)">모</span><span><b>모두</b><small>함께 보기</small></span>`;
+  all.onclick=()=>{ S.kidFilter=null; renderAll(); };
+  box.appendChild(all);
+  S.kids.forEach((k,i)=>{
+    const b=document.createElement('button'); b.type='button'; b.className='kid';
+    b.setAttribute('aria-pressed', String(S.kidFilter===k.id));
+    b.innerHTML=`<span class="dot" style="background:${kidColor(k,i)}">${esc(k.name.slice(-1))}</span><span><b>${esc(k.name)}</b><small>${esc(ageAt(k.birth,t))}</small></span>`;
+    b.onclick=()=>{ S.kidFilter = S.kidFilter===k.id ? null : k.id; renderAll(); };
+    box.appendChild(b);
+  });
+}
+
+function itemEl(e){
+  const b=document.createElement('button'); b.type='button'; b.className='item';
+  const d=parse(e.date);
+  const tags=(e.kids||[]).map(id=>{const i=S.kids.findIndex(k=>k.id===id); const k=S.kids[i]; return k?`<span class="tg" style="background:${kidColor(k,i)}">${esc(k.name)}</span>`:'';}).join('');
+  b.innerHTML=`<span class="thumb">${e.thumb?`<img alt="" loading="lazy" src="${e.thumb}">`:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h16M6 16l4-5 3 3 2-2 3 4"/></svg>'}</span>
+    <span style="min-width:0"><span class="d">${d.y}. ${d.m}. ${d.d}.<span>${WD[d.wd]}요일</span></span>
+    <span class="tags">${tags}</span><p>${esc(e.text||'') || '<span style="color:var(--ink-2)">사진만 남긴 날</span>'}</p></span>`;
+  b.onclick=()=>openView(e.id);
+  return b;
+}
+
+function renderCalendar(){
+  const {y,m}=S.ym;
+  const key=`${y}-${pad(m)}`;
+  const monthEntries=visible().filter(e=>e.date.startsWith(key));
+  $('mTitle').innerHTML=`${y}년 ${m}월<span class="count">${monthEntries.length}장</span>`;
+  const cal=$('cal'); cal.innerHTML='';
+  WD.forEach((w,i)=>{ const d=document.createElement('div'); d.className='wd'+(i===0?' sun':''); d.textContent=w; cal.appendChild(d); });
+  const first=new Date(y,m-1,1).getDay(), days=new Date(y,m,0).getDate(), t=todayStr();
+  for(let i=0;i<first;i++){ const c=document.createElement('div'); c.className='cell blank'; cal.appendChild(c); }
+  for(let d=1; d<=days; d++){
+    const ds=`${key}-${pad(d)}`;
+    const es=sortEntries(monthEntries.filter(e=>e.date===ds));
+    const c=document.createElement('button'); c.type='button';
+    const wd=new Date(y,m-1,d).getDay();
+    const ph=es.find(e=>e.thumb);
+    c.className='cell'+(es.length?' has':'')+(ph?' photo':'')+(ds===t?' today':'')+(wd===0?' sun':'');
+    c.setAttribute('aria-label',`${m}월 ${d}일${es.length?`, 기록 ${es.length}장`:''}`);
+    c.innerHTML=(ph?`<img alt="" loading="lazy" src="${ph.thumb}">`:'')+`<span class="n">${d}</span>`+
+      (es.length && !ph ? '<span class="note"></span>':'')+(es.length>1?`<span class="more">${es.length}</span>`:'');
+    c.onclick=()=>openDay(ds);
+    cal.appendChild(c);
+  }
+  const ml=$('mList'); ml.innerHTML='';
+  $('mlTitle').textContent=`${m}월의 기록`;
+  if(!S.loaded){ ml.innerHTML='<div class="empty">기록을 불러오는 중이에요</div>'; return; }
+  if(!monthEntries.length){
+    ml.innerHTML=`<div class="empty"><span class="hand">이 달은 아직 비어 있어요</span>오른쪽 위 ‘기록하기’로 사진 한 장과 짧은 글을 남겨보세요.</div>`;
+    return;
+  }
+  sortEntries(monthEntries).reverse().forEach(e=>ml.appendChild(itemEl(e)));
+}
+
+function renderSearch(){
+  const q=$('qText').value.trim(), dt=$('qDate').value;
+  const active=!!(q||dt);
+  $('qClear').hidden=!active; $('searchResults').hidden=!active;
+  if(!active) return;
+  const ql=q.toLowerCase();
+  const res=sortEntries(visible().filter(e=>{
+    if(dt && e.date!==dt) return false;
+    if(!ql) return true;
+    const names=(e.kids||[]).map(id=>kidById(id)?.name||'').join(' ');
+    return (e.text||'').toLowerCase().includes(ql) || names.includes(q) || e.date.includes(q);
+  })).reverse();
+  const parts=[]; if(dt){const d=parse(dt); parts.push(`${d.y}. ${d.m}. ${d.d}.`);} if(q) parts.push(`‘${q}’`);
+  $('srTitle').textContent=`${parts.join(' · ')} 찾은 기록 ${res.length}장`;
+  const l=$('srList'); l.innerHTML='';
+  if(!res.length){ l.innerHTML='<div class="empty">맞는 기록이 없어요. 다른 날짜나 낱말로 찾아보세요.</div>'; return; }
+  res.forEach(e=>l.appendChild(itemEl(e)));
+}
+function renderAll(){ renderKids(); renderCalendar(); renderSearch(); }
+
+$('mPrev').onclick=()=>{ let {y,m}=S.ym; m--; if(m<1){m=12;y--;} S.ym={y,m}; renderCalendar(); };
+$('mNext').onclick=()=>{ let {y,m}=S.ym; m++; if(m>12){m=1;y++;} S.ym={y,m}; renderCalendar(); };
+$('qDate').addEventListener('change',()=>{ const v=$('qDate').value; if(v){const d=parse(v); S.ym={y:d.y,m:d.m}; renderCalendar();} renderSearch(); });
+let qT; $('qText').addEventListener('input',()=>{ clearTimeout(qT); qT=setTimeout(renderSearch,150); });
+$('qClear').onclick=()=>{ $('qText').value=''; $('qDate').value=''; renderSearch(); };
+
+/* ---------- photos ---------- */
+const photoCache = new Map();
+async function fullPhoto(id){
+  if(photoCache.has(id)) return photoCache.get(id);
+  const s=await getDoc(doc(db,PHOTOS,id));
+  if(!s.exists()) return null;
+  const v=s.data(); photoCache.set(id,v); return v;
+}
+function loadImg(file){
+  return new Promise((res,rej)=>{ const u=URL.createObjectURL(file); const img=new Image();
+    img.onload=()=>{ URL.revokeObjectURL(u); res(img); }; img.onerror=()=>{ URL.revokeObjectURL(u); rej(new Error('load')); }; img.src=u; });
+}
+function draw(img, maxEdge){
+  let w=img.naturalWidth, h=img.naturalHeight; const r=Math.min(1, maxEdge/Math.max(w,h)); w=Math.round(w*r); h=Math.round(h*r);
+  const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(img,0,0,w,h);
+  return c;
+}
+async function prepPhoto(file){
+  const img=await loadImg(file);
+  let full=null;
+  for(const [edge,q] of [[1600,.85],[1600,.74],[1400,.7],[1200,.66],[1000,.62]]){
+    const c=draw(img,edge); const url=c.toDataURL('image/jpeg',q);
+    full={data:url, w:c.width, h:c.height};
+    if(url.length < 900000) break;
+  }
+  const t=draw(img,360); const thumb=t.toDataURL('image/jpeg',.72);
+  return {...full, thumb};
+}
+
+/* ---------- day & viewer ---------- */
+let dayOpen=null;
+function openDay(ds){
+  const es=sortEntries(visible().filter(e=>e.date===ds));
+  if(es.length===1){ openView(es[0].id); return; }
+  if(!es.length){ openEditor(null, ds); return; }
+  dayOpen=ds; const d=parse(ds);
+  $('dyTitle').textContent=`${d.m}월 ${d.d}일 ${WD[d.wd]}요일`;
+  const l=$('dyList'); l.innerHTML=''; es.forEach(e=>l.appendChild(itemEl(e)));
+  open('ovDay');
+}
+$('dyNew').onclick=()=>{ close('ovDay'); openEditor(null, dayOpen); };
+
+function pageHtml(e, src){
+  const d=parse(e.date);
+  return `<div class="page"><div class="y">${d.y}</div><div class="dd">${d.m}월 ${d.d}일<span>${WD[d.wd]}요일</span></div>
+    <div class="k">${esc(kidsLine(e))||'&nbsp;'}</div>
+    ${src?`<img alt="그날의 사진" id="vwImg" src="${src}">`:''}
+    <div class="tx">${esc(e.text||'')}</div></div>`;
+}
+async function openView(id){
+  const e=S.entries.find(x=>x.id===id); if(!e) return;
+  S.view=id; close('ovDay');
+  $('vwPage').innerHTML=pageHtml(e, e.thumb);
+  $('vwConfirm').hidden=true;
+  open('ovView');
+  if(e.hasPhoto){ try{ const p=await fullPhoto(e.id); if(p && S.view===id && $('vwImg')) $('vwImg').src=p.data; }catch(_){} }
+}
+$('vwEdit').onclick=()=>{ const e=S.entries.find(x=>x.id===S.view); close('ovView'); if(e) openEditor(e); };
+$('vwDel').onclick=()=>{ $('vwConfirm').hidden=false; };
+$('vwNo').onclick=()=>{ $('vwConfirm').hidden=true; };
+$('vwYes').onclick=async()=>{
+  const e=S.entries.find(x=>x.id===S.view); if(!e) return;
+  $('vwYes').disabled=true;
+  try{
+    await deleteDoc(doc(db,ENTRIES,e.id));
+    if(e.hasPhoto){ try{ await deleteDoc(doc(db,PHOTOS,e.id)); }catch(_){} }
+    photoCache.delete(e.id);
+    close('ovView'); toast('기록을 지웠어요');
+  }catch(err){ toast('지우지 못했어요. 인터넷 연결을 확인해주세요'); }
+  $('vwYes').disabled=false;
+};
+$('vwSave').onclick=()=>{ const e=S.entries.find(x=>x.id===S.view); if(!e) return; close('ovView'); openSave('day', e.date); };
+
+/* ---------- editor ---------- */
+let edKids=[];
+function renderEdKids(){
+  const box=$('edKids'); box.innerHTML='';
+  S.kids.forEach((k,i)=>{
+    const b=document.createElement('button'); b.type='button'; b.className='pick';
+    b.setAttribute('aria-pressed', String(edKids.includes(k.id)));
+    b.innerHTML=`<span class="sw" style="background:${kidColor(k,i)}"></span>${esc(k.name)}`;
+    b.onclick=()=>{ edKids = edKids.includes(k.id) ? edKids.filter(x=>x!==k.id) : [...edKids,k.id]; renderEdKids(); };
+    box.appendChild(b);
+  });
+}
+function renderEdPhoto(){
+  const p=S.photo, drop=$('edDrop');
+  if(p){ drop.innerHTML=`<img alt="고른 사진" src="${p.data || p.thumb}">`; $('edPhotoActs').hidden=false; }
+  else { drop.innerHTML='<div class="hint"><b>사진 고르기</b>눌러서 사진을 넣어주세요</div>'; $('edPhotoActs').hidden=true; }
+}
+async function openEditor(e, date){
+  S.editing = e ? e.id : null;
+  $('edTitle').textContent = e ? '기록 고치기' : '오늘의 한 장';
+  $('edDate').value = e ? e.date : (date || todayStr());
+  edKids = e ? [...(e.kids||[])] : (S.kidFilter ? [S.kidFilter] : S.kids.map(k=>k.id));
+  S.photo = e && e.hasPhoto ? {existing:true, thumb:e.thumb, w:e.pw, h:e.ph} : null;
+  $('edText').value = e ? (e.text||'') : '';
+  $('edCount').textContent = $('edText').value.length;
+  $('edErr').hidden=true; $('edPhotoErr').hidden=true;
+  renderEdKids(); renderEdPhoto(); open('ovEdit');
+}
+$('btnNew').onclick=()=>openEditor(null);
+$('edText').addEventListener('input',()=>{ $('edCount').textContent=$('edText').value.length; });
+$('edDrop').onclick=()=>$('edFile').click();
+$('edPhotoChange').onclick=()=>$('edFile').click();
+$('edPhotoRemove').onclick=()=>{ S.photo=null; renderEdPhoto(); };
+$('edFile').addEventListener('change', async ()=>{
+  const f=$('edFile').files[0]; $('edFile').value=''; if(!f) return;
+  $('edPhotoErr').hidden=true;
+  $('edDrop').innerHTML='<div class="hint"><b>사진 준비 중</b>잠시만요</div>';
+  try{ S.photo={...(await prepPhoto(f)), fresh:true}; }
+  catch(err){ $('edPhotoErr').hidden=false; $('edPhotoErr').textContent='이 사진은 열 수 없어요. JPG나 PNG 사진으로 다시 골라주세요.'; }
+  renderEdPhoto();
+});
+$('edSave').onclick=async()=>{
+  const err=$('edErr'); err.hidden=true;
+  const date=$('edDate').value, text=$('edText').value.trim();
+  if(!date){ err.hidden=false; err.textContent='날짜를 골라주세요.'; return; }
+  if(!edKids.length){ err.hidden=false; err.textContent='누구의 기록인지 한 명 이상 골라주세요.'; return; }
+  if(!S.photo && !text){ err.hidden=false; err.textContent='사진이나 기록 중 하나는 넣어주세요.'; return; }
+  const btn=$('edSave'); btn.disabled=true; btn.textContent='저장하는 중';
+  const prev = S.editing ? S.entries.find(x=>x.id===S.editing) : null;
+  try{
+    const ref = prev ? doc(db,ENTRIES,prev.id) : doc(collection(db,ENTRIES));
+    const now=new Date().toISOString();
+    const body={date, kids:edKids, text, hasPhoto:!!S.photo, thumb:null, pw:null, ph:null, createdAt: prev?.createdAt || now, updatedAt: now};
+    if(S.photo && S.photo.fresh){
+      btn.textContent='사진 올리는 중';
+      await setDoc(doc(db,PHOTOS,ref.id), {data:S.photo.data, w:S.photo.w, h:S.photo.h});
+      photoCache.set(ref.id, {data:S.photo.data, w:S.photo.w, h:S.photo.h});
+      Object.assign(body,{thumb:S.photo.thumb, pw:S.photo.w, ph:S.photo.h});
+    } else if(S.photo && S.photo.existing){
+      Object.assign(body,{thumb:prev.thumb, pw:prev.pw, ph:prev.ph});
+    }
+    await setDoc(ref, body);
+    if(prev && prev.hasPhoto && !S.photo){ try{ await deleteDoc(doc(db,PHOTOS,prev.id)); }catch(_){} photoCache.delete(prev.id); }
+    S.photo=null; close('ovEdit');
+    const d=parse(date); S.ym={y:d.y,m:d.m}; renderCalendar();
+    toast(prev?'고쳤어요':'한 장 저장했어요');
+  }catch(e2){
+    err.hidden=false; err.textContent='저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러주세요.';
+  }
+  btn.disabled=false; btn.textContent='저장하기';
+};
+
+/* ---------- kids settings ---------- */
+let kdDraft=[];
+function openKids(){ kdDraft=S.kids.map(k=>({...k})); if(!kdDraft.length) kdDraft=[{id:'k'+Date.now(),name:'',birth:''}]; renderKd(); $('kdErr').hidden=true; open('ovKids'); }
+function renderKd(){
+  const box=$('kdRows'); box.innerHTML='';
+  kdDraft.forEach((k,i)=>{
+    const r=document.createElement('div'); r.className='kidrow';
+    r.innerHTML=`<input class="inp" placeholder="이름" aria-label="이름" value="${esc(k.name)}" id="kdN${i}"><input class="inp" type="date" aria-label="생일" value="${esc(k.birth)}" id="kdB${i}"><button class="btn ghost" type="button">빼기</button>`;
+    r.querySelector('#kdN'+i).oninput=ev=>k.name=ev.target.value;
+    r.querySelector('#kdB'+i).onchange=ev=>k.birth=ev.target.value;
+    r.querySelector('button').onclick=()=>{ kdDraft.splice(i,1); renderKd(); };
+    box.appendChild(r);
+  });
+}
+$('btnKids').onclick=openKids;
+$('kdAdd').onclick=()=>{ kdDraft.push({id:'k'+Date.now(),name:'',birth:''}); renderKd(); };
+$('kdSave').onclick=async()=>{
+  const list=kdDraft.map(k=>({...k,name:k.name.trim()})).filter(k=>k.name);
+  if(list.some(k=>!k.birth)){ $('kdErr').hidden=false; $('kdErr').textContent='생일을 모두 넣어주세요.'; return; }
+  try{ await setDoc(doc(db,SETTINGS,'family'),{kids:list}); close('ovKids'); toast('아이 정보를 저장했어요'); }
+  catch(_){ $('kdErr').hidden=false; $('kdErr').textContent='저장하지 못했어요. 다시 눌러주세요.'; }
+};
+
+/* ---------- save as HWPX ---------- */
+function openSave(range, date){
+  S.saveRange=range||'day';
+  const t=date||todayStr();
+  $('svDay').value=t; $('svMonth').value=`${S.ym.y}-${pad(S.ym.m)}`;
+  $('svFrom').value=$('svFrom').value || `${S.ym.y}-${pad(S.ym.m)}-01`; $('svTo').value=$('svTo').value || t;
+  S.saveKids = S.kidFilter; $('svErr').hidden=true;
+  renderSave(); open('ovSave');
+}
+$('btnSave').onclick=()=>openSave('month');
+document.querySelectorAll('#svRange .pick').forEach(b=>b.onclick=()=>{ S.saveRange=b.dataset.r; renderSave(); });
+['svDay','svMonth','svFrom','svTo'].forEach(id=>$(id).addEventListener('change',renderSave));
+function saveList(){
+  let arr=S.entries.filter(e=>!S.saveKids || (e.kids||[]).includes(S.saveKids));
+  const r=S.saveRange;
+  if(r==='day') arr=arr.filter(e=>e.date===$('svDay').value);
+  if(r==='month') arr=arr.filter(e=>e.date.startsWith($('svMonth').value));
+  if(r==='range'){ const a=$('svFrom').value, b=$('svTo').value; arr=arr.filter(e=>(!a||e.date>=a)&&(!b||e.date<=b)); }
+  return sortEntries(arr);
+}
+function saveLabel(){
+  const r=S.saveRange, kid=S.saveKids?kidById(S.saveKids)?.name:'';
+  let s='전체';
+  if(r==='day'){ const d=parse($('svDay').value||todayStr()); s=`${d.y}년${d.m}월${d.d}일`; }
+  if(r==='month'){ const [y,m]=($('svMonth').value||'').split('-'); s=`${y}년${Number(m)}월`; }
+  if(r==='range') s=`${$('svFrom').value}~${$('svTo').value}`;
+  return `하루한장_${kid?kid+'_':''}${s}`.replace(/[\\/:*?"<>|]/g,'');
+}
+function renderSave(){
+  document.querySelectorAll('#svRange .pick').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.r===S.saveRange)));
+  $('svDayBox').hidden=S.saveRange!=='day'; $('svMonthBox').hidden=S.saveRange!=='month'; $('svRangeBox').hidden=S.saveRange!=='range';
+  const kb=$('svKids'); kb.innerHTML='';
+  [{id:null,name:'모두'},...S.kids].forEach(k=>{
+    const b=document.createElement('button'); b.type='button'; b.className='pick'; b.textContent=k.name;
+    b.setAttribute('aria-pressed', String(S.saveKids===k.id)); b.onclick=()=>{ S.saveKids=k.id; renderSave(); }; kb.appendChild(b);
+  });
+  const n=saveList().length;
+  $('svSummary').innerHTML = n ? `<b>${n}장</b> → A4 ${n}쪽짜리 한글 파일 하나로 만들어요.<br><span style="color:var(--ink-2);font-size:13px">‘${esc(saveLabel())}.hwpx’로 저장돼요.</span>`
+    : '<span style="color:var(--ink-2)">고른 범위에 기록이 없어요.</span>';
+  $('svGo').disabled = !n;
+}
+function b64ToBytes(dataUrl){
+  const b=atob(dataUrl.split(',')[1]); const u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u;
+}
+$('svGo').onclick=async()=>{
+  const list=saveList(); if(!list.length) return;
+  const btn=$('svGo'); btn.disabled=true; $('svErr').hidden=true;
+  try{
+    const pages=[];
+    for(let i=0;i<list.length;i++){
+      const e=list[i]; const d=parse(e.date);
+      btn.textContent=`사진 담는 중 ${i+1}/${list.length}`;
+      let img=null;
+      if(e.hasPhoto){ try{ const p=await fullPhoto(e.id); if(p) img={bytes:b64ToBytes(p.data), w:p.w, h:p.h, ext:'jpg'}; }catch(_){} }
+      pages.push({ year:`${d.y}`, dateText:`${d.m}월 ${d.d}일`, weekday:`${WD[d.wd]}요일`, kidsText:kidsLine(e), text:e.text||'',
+        img, imgTall: img ? img.h>img.w : false, handwrite:$('svHand').checked });
+    }
+    btn.textContent='한글 파일 만드는 중';
+    const bytes=await buildHwpx(JSZip, HWPX_PARTS, pages);
+    const blob=new Blob([bytes],{type:'application/hwp+zip'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=saveLabel()+'.hwpx';
+    document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    close('ovSave'); toast('한글 파일을 저장했어요');
+  }catch(err){ $('svErr').hidden=false; $('svErr').textContent='파일을 만들지 못했어요. 다시 눌러주세요.'; }
+  btn.disabled=false; btn.textContent='한글 파일 만들기';
+};
+
+/* ---------- boot ---------- */
+renderAll();
+onSnapshot(doc(db,SETTINGS,'family'), s=>{
+  if(!s.exists()){ setDoc(doc(db,SETTINGS,'family'),{kids:DEFAULT_KIDS}).catch(()=>{}); S.kids=DEFAULT_KIDS; }
+  else S.kids=s.data().kids||[];
+  S.kidsLoaded=true; renderAll();
+}, ()=>{ S.kids=DEFAULT_KIDS; renderAll(); });
+onSnapshot(collection(db,ENTRIES), s=>{
+  S.entries=s.docs.map(d=>({id:d.id,...d.data()})); S.loaded=true; renderAll();
+}, ()=>{ const n=$('notice'); n.textContent='기록을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해주세요.'; n.hidden=false; });
+
+</script>
+</body>
+</html>
